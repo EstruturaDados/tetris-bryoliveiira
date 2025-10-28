@@ -41,6 +41,8 @@ void helper_enqueue(Peca p);
 void acao_jogarPeca(void);
 void acao_reservarPeca(void);
 void acao_usarPecaReservada(void);
+void acao_trocarPecaSimples(void);
+void acao_trocarPecaMultipla(void);
 
 void exibirEstado(void);
 void exibirFila(void);
@@ -73,6 +75,12 @@ int main() {
                 break;
             case 3:
                 acao_usarPecaReservada();
+                break;
+            case 4:
+                acao_trocarPecaSimples();
+                break;
+            case 5:
+                acao_trocarPecaMultipla();
                 break;
             case 0:
                 printf("Saindo do Tetris Stack...\n");
@@ -182,8 +190,39 @@ void acao_usarPecaReservada(void) {
 
     Peca pecaUsada = pilhaDeReserva.pecas[pilhaDeReserva.topo--];
     printf("Ação: Peça reservada [%c %d] usada (removida da pilha).\n", pecaUsada.nome, pecaUsada.id);
+}
 
-    helper_enqueue(gerarPeca());
+void acao_trocarPecaSimples(void) {
+    if (filaEstaVazia() || pilhaEstaVazia()) {
+        printf("Ação: FALHA. Fila e Pilha precisam ter pelo menos 1 peça para trocar.\n");
+        return;
+    }
+
+    Peca temp = filaDePecas.pecas[filaDePecas.inicio];
+    filaDePecas.pecas[filaDePecas.inicio] = pilhaDeReserva.pecas[pilhaDeReserva.topo];
+    pilhaDeReserva.pecas[pilhaDeReserva.topo] = temp;
+
+    printf("Ação: Troca simples realizada entre [%c %d] (fila) e [%c %d] (pilha).\n", 
+        filaDePecas.pecas[filaDePecas.inicio].nome, filaDePecas.pecas[filaDePecas.inicio].id,
+        pilhaDeReserva.pecas[pilhaDeReserva.topo].nome, pilhaDeReserva.pecas[pilhaDeReserva.topo].id);
+}
+
+void acao_trocarPecaMultipla(void) {
+    if (filaDePecas.contador < 3 || pilhaDeReserva.topo < 2) {
+        printf("Ação: FALHA. A Fila e a Pilha precisam ter pelo menos 3 peças para a troca múltipla.\n");
+        return;
+    }
+
+    for (int i = 0; i < 3; i++) {
+        int indiceFila = (filaDePecas.inicio + i) % TAM_FILA;
+        int indicePilha = pilhaDeReserva.topo - i;
+
+        Peca temp = filaDePecas.pecas[indiceFila];
+        filaDePecas.pecas[indiceFila] = pilhaDeReserva.pecas[indicePilha];
+        pilhaDeReserva.pecas[indicePilha] = temp;
+    }
+
+    printf("Ação: Troca múltipla realizada entre as 3 primeiras peças da fila e as 3 da pilha.\n");
 }
 
 void exibirEstado() {
@@ -221,9 +260,11 @@ void exibirPilha() {
 
 void exibirMenu() {
     printf("\nOpções de ação:\n");
-    printf(" 1 - Jogar peça (da fila)\n");
-    printf(" 2 - Reservar peça (fila -> pilha)\n");
-    printf(" 3 - Usar peça reservada (da pilha)\n");
+    printf(" 1 - Jogar peça da frente da fila\n");
+    printf(" 2 - Enviar peça da fila para a pilha de reserva\n");
+    printf(" 3 - Usar peça da pilha de reserva\n");
+    printf(" 4 - Trocar peça da frente da fila com o topo da pilha\n");
+    printf(" 5 - Trocar os 3 primeiros da fila com as 3 peças da pilha\n");
     printf(" 0 - Sair\n");
     printf("Escolha sua ação: ");
 }
